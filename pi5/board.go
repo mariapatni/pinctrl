@@ -76,23 +76,16 @@ func newBoard(
 		// store addresses + other stuff here
 		chipSize: 0x30000,
 	}
-	if err := b.initializeGPIOs(gpioMappings); err != nil {
-		return nil, err
-	}
 
-	if err := b.setupPinControl(testingMode); err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-func (b *pinctrlpi5) initializeGPIOs(gpioMappings map[string]gl.GPIOBoardMapping) error {
 	for newName, mapping := range gpioMappings {
 		b.gpios[newName] = b.createGpioPin(mapping)
 	}
 	b.gpioMappings = gpioMappings
 
-	return nil
+	if err := b.setupPinControl(testingMode); err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 func (b *pinctrlpi5) createGpioPin(mapping gl.GPIOBoardMapping) *gpioPin {
