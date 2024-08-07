@@ -77,7 +77,7 @@ func newBoard(
 		chipSize: 0x30000,
 	}
 	if err := b.initializeGPIOs(gpioMappings); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := b.setupPinControl(testingMode); err != nil {
@@ -86,28 +86,11 @@ func newBoard(
 	return b, nil
 }
 
-// Reconfigure reconfigures the board.
-func (b *pinctrlpi5) Reconfigure(
-	ctx context.Context,
-	_ resource.Dependencies,
-	conf resource.Config,
-) error {
-	newConf, err := b.convertConfig(conf, b.logger)
-	if err != nil {
-		return err
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	return nil
-}
-
 func (b *pinctrlpi5) initializeGPIOs(gpioMappings map[string]gl.GPIOBoardMapping) error {
 	for newName, mapping := range gpioMappings {
 		b.gpios[newName] = b.createGpioPin(mapping)
 	}
-	b.gpioMappings = newConf.GpioMappings
+	b.gpioMappings = gpioMappings
 
 	return nil
 }
@@ -129,8 +112,8 @@ func (b *pinctrlpi5) createGpioPin(mapping gl.GPIOBoardMapping) *gpioPin {
 // Board implements a component for a Linux machine.
 type pinctrlpi5 struct {
 	resource.Named
+	resource.TriviallyReconfigurable
 	mu            sync.RWMutex
-	convertConfig ConfigConverter
 
 	gpioMappings map[string]gl.GPIOBoardMapping
 	logger       logging.Logger
