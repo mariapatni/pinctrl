@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 
+	"go.viam.com/utils"
 	"pinctrl/pi5"
 
 	"go.viam.com/utils"
@@ -13,7 +14,6 @@ import (
 	"go.viam.com/rdk/components/board"
 	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/module"
-	"go.viam.com/utils"
 )
 
 func main() {
