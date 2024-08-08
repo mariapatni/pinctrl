@@ -6,7 +6,8 @@ package main
 import (
 	"context"
 
-	"pinctrl/pi5"
+	"github.com/viam-modules/pinctrl/pi5"
+	"go.viam.com/utils"
 
 	"go.viam.com/utils"
 
