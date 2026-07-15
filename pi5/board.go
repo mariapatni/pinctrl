@@ -27,10 +27,11 @@ var Model = resource.NewModel("viam-labs", "pinctrl", "rpi5")
 const defaultPWMFreqHz = 800 // default used in pigpio
 
 func init() {
-	gpioMappings, err := gl.GetGPIOBoardMappings(Model.Name, boardInfoMappings)
+	initLogger := logging.NewLogger("pi5-init")
+	gpioMappings, err := gl.GetGPIOBoardMappings(Model.Name, boardInfoMappings, initLogger)
 	var noBoardErr gl.NoBoardFoundError
 	if errors.As(err, &noBoardErr) {
-		logging.Global().Debugw("Error getting raspi5 GPIO board mapping", "error", err)
+		initLogger.Debugw("Error getting raspi5 GPIO board mapping", "error", err)
 	}
 
 	RegisterBoard(Model.Name, gpioMappings)
@@ -274,6 +275,7 @@ func (b *pinctrlpi5) SetPowerMode(
 	ctx context.Context,
 	mode pb.PowerMode,
 	duration *time.Duration,
+	extra map[string]interface{},
 ) error {
 	return grpc.UnimplementedError
 }
