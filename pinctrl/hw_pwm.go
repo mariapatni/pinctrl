@@ -107,6 +107,7 @@ func writeValue(filepath string, value uint64, logger logging.Logger) error {
 		logger.Debugf("Encountered error writing to sysfs: %s", err)
 		return errors.Join(err, errors.New(filepath))
 	}
+
 	return nil
 }
 
@@ -129,11 +130,13 @@ func (pwm *pwmDevice) export() error {
 			// happy path
 			return pwm.writeChip("export", uint64(pwm.pwmID))
 		}
+
 		return err // Something unexpected has gone wrong.
 	}
 	// Otherwise, the line we're trying to export already exists.
 	pwm.logger.Debugf("Skipping re-export of already-exported line %d on HW PWM chip %s",
 		pwm.pwmID, pwm.chipPath)
+
 	return nil
 }
 
@@ -144,8 +147,10 @@ func (pwm *pwmDevice) unexport() error {
 		if os.IsNotExist(err) {
 			pwm.logger.Debugf("Skipping unexport of already-unexported line %d on HW PWM chip %s",
 				pwm.pwmID, pwm.chipPath)
+
 			return nil
 		}
+
 		return err // Something has gone wrong.
 	}
 
@@ -160,12 +165,15 @@ func (pwm *pwmDevice) unexport() error {
 	// the pin too quickly after changing something else about it (e.g., disabling it), the whole
 	// PWM system gets corrupted. Sleep for a small amount of time to avoid this.
 	time.Sleep(10 * time.Millisecond)
-	if err := pwm.writeChip("unexport", uint64(pwm.pwmID)); err != nil {
+
+	err := pwm.writeChip("unexport", uint64(pwm.pwmID))
+	if err != nil {
 		return err
 	}
 
 	// This should be a redundant call because switching to GPIO happens implicitly.
-	if err := pwm.SetPinMode(GPIOMode); err != nil {
+	err = pwm.SetPinMode(GPIOMode)
+	if err != nil {
 		return err
 	}
 
@@ -190,6 +198,7 @@ func (pwm *pwmDevice) wrapError(err error) error {
 	if err != nil {
 		return errors.Join(err, fmt.Errorf("HW PWM chipPath %s, line %d", pwm.chipPath, pwm.pwmID))
 	}
+
 	return nil
 }
 
@@ -207,11 +216,12 @@ func getGPIOPinAddress(gpioNumber int) (int64, error) {
 	const pinDataSizeBytes = 0x8 // 8 bytes per pin: 4 bytes represent control statuses and 4 bytes are for different control modes
 
 	// check that the given pin is in bank 0(it should be)
-	if !(1 <= gpioNumber && gpioNumber <= numGPIOPins) {
+	if 1 > gpioNumber || gpioNumber > numGPIOPins {
 		return -1, errors.New("pin is out of bank range")
 	}
 
 	pinAddressOffset := (gpioNumber * pinDataSizeBytes)
+
 	return int64(pinAddressOffset), nil
 }
 
@@ -283,11 +293,14 @@ func (pwm *pwmDevice) SetPwm(freqHz uint, dutyCycle float64) (err error) {
 		// period non-zero and enabling it again.
 		pwm.logger.Debugf("Cannot enable HW PWM device %s line %d, will try changing period: %s",
 			pwm.chipPath, pwm.pwmID, err)
-		if err := pwm.writeLine("period", safePeriodNs); err != nil {
+
+		err := pwm.writeLine("period", safePeriodNs)
+		if err != nil {
 			return err
 		}
 		// Now, try enabling the pin one more time before giving up.
-		if err := pwm.enable(); err != nil {
+		err = pwm.enable()
+		if err != nil {
 			return err
 		}
 	}
@@ -334,5 +347,6 @@ func (pwm *pwmDevice) SetPwm(freqHz uint, dutyCycle float64) (err error) {
 func (pwm *pwmDevice) Close() error {
 	pwm.mu.Lock()
 	defer pwm.mu.Unlock()
+
 	return pwm.wrapError(pwm.unexport())
 }

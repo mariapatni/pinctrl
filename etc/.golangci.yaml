@@ -1,58 +1,48 @@
-service:
-  golangci-lint-version: 1.51.x
+version: "2"
 run:
-  deadline: 900s
+  timeout: 900s
   modules-download-mode: readonly
 linters:
-  enable-all: true
+  default: all
   disable:
     - asasalint
     - mnd
     - containedctx
     - contextcheck
     - cyclop
-    - deadcode
     - depguard
-    - exhaustivestruct
     - exhaustruct
     - forcetypeassert
     - funlen
     - gocognit
     - godox
-    - goerr113
+    - err113
     - gochecknoglobals
     - gochecknoinits
     - gocyclo
-    - gofmt
-    - goimports
-    - golint
-    - gomnd
-    - ifshort
-    - importas
     - interfacebloat
-    - interfacer
     - ireturn
     - maintidx
-    - maligned
     - makezero
     - musttag
     - nakedret
     - nestif
     - nlreturn
-    - nosnakecase
     - nonamedreturns
     - nosprintfhostport
     - paralleltest
     - prealloc
-    - scopelint
-    - structcheck
     - tagliatelle
     - testpackage
-    - thelper # false positives
-    - varcheck
+    - thelper
     - varnamelen
     - wrapcheck
     - wsl
+    - noinlineerr
+    - funcorder
+    - lll
+    - gosec
+    - goconst
 linters-settings:
   errcheck:
     check-blank: true
@@ -62,11 +52,10 @@ linters-settings:
       - default
       - prefix(github.com/viam-modules/pinctrl)
   gofumpt:
-    lang-version: "1.21"
     extra-rules: true
   gosec:
     excludes:
-      - G115 
+      - G115
   govet:
     enable-all: true
     disable:
@@ -74,11 +63,6 @@ linters-settings:
       - shadow
       - composites
   revive:
-    # Unfortunately configuring a single rules disables all other rules, even
-    # if we set `enable-all: true`
-    #
-    # To get around this, we include default rules:
-    # https://github.com/mgechev/revive/blob/master/defaults.toml
     rules:
       - name: blank-imports
       - name: context-as-argument
@@ -109,13 +93,16 @@ linters-settings:
     line-length: 140
 issues:
   exclude-rules:
-    - path: _test\.go$
+    - path: .*_test\.go
       linters:
         - dupword
         - errcheck
         - exhaustive
         - goconst
         - gosec
+    - linters:
+        - revive
+      text: "unused-parameter"
   exclude-use-default: false
-  max-per-linter: 0
+  max-issues-per-linter: 0
   max-same-issues: 0
